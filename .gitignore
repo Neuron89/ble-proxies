@@ -1,0 +1,15 @@
+# Real ESPHome secrets
+**/secrets.yaml
+
+# ESPHome build artifacts
+.esphome/
+.pioenvs/
+.piolibdeps/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
