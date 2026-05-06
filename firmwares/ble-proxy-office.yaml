@@ -1,26 +1,27 @@
 substitutions:
   device_name: ble-proxy-office
   friendly_name: BLE Proxy Office
-  room: office
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  comment: ESP32-WROOM Bluetooth proxy. Replaces the ESPresense node previously at this location.
+  comment: ESP32 Bluetooth proxy. v2 — Arduino framework + serial logs for first-flash diagnosability. Switch to esp-idf later if you ever need >5 concurrent BLE connections.
 
 esp32:
   board: esp32dev
   framework:
-    type: esp-idf
+    type: arduino
 
 logger:
   level: INFO
-  baud_rate: 0  # disable serial logging — frees the UART pins and reduces interrupt load
+  # Serial logs enabled (baud 115200) so you can plug USB and see panics if
+  # this ever boot-loops again. Set baud_rate: 0 once everything's stable to
+  # free the UART pins.
 
 api:
   encryption:
     key: !secret api_encryption_key
-  reboot_timeout: 0s  # don't reboot on momentary HA disconnects
+  reboot_timeout: 0s
 
 ota:
   - platform: esphome
@@ -29,34 +30,25 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  power_save_mode: none
   ap:
     ssid: "${friendly_name} Fallback"
     password: !secret wifi_fallback_password
-  power_save_mode: none  # keeps WiFi reliable; BLE proxies are USB-powered so no battery cost
 
 captive_portal:
 
-# Bluetooth proxy with active scanning. Active mode sends scan requests to
-# advertising devices, which makes iBeacons (like Murphy) respond faster and
-# more reliably than passive-only mode. Passive is fine if you're seeing too
-# much WiFi/BT contention.
 bluetooth_proxy:
   active: true
 
-# Diagnostic entities — handy when validating the rollout.
-text_sensor:
-  - platform: version
-    name: ESPHome version
-
+# Minimal diagnostics — internal_temperature dropped; it's chip-variant-
+# dependent and was the likely culprit of the v1 boot crash. Re-add later
+# from individual sensors if you want the metric.
 sensor:
   - platform: uptime
     name: Uptime
   - platform: wifi_signal
     name: WiFi signal
     update_interval: 60s
-  - platform: internal_temperature
-    name: Internal temperature
-    update_interval: 120s
 
 binary_sensor:
   - platform: status
